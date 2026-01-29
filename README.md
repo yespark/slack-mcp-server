@@ -17,6 +17,35 @@ This feature-rich Slack MCP Server has:
 - **Cache support**: Cache users and channels for faster access.
 - **Stdio/SSE/HTTP Transports & Proxy Support**: Use the server with any MCP client that supports Stdio, SSE or HTTP transports, and configure it to route outgoing requests through a proxy if needed.
 
+## Installation
+
+```bash
+npm install @yespark/slack-mcp-server
+```
+
+## Configuration MCP
+
+Ajoutez cette configuration à votre client MCP (Claude Desktop, Claude Control, etc.) :
+
+```json
+{
+  "mcpServers": {
+    "slack": {
+      "command": "npx",
+      "args": ["@yespark/slack-mcp-server"],
+      "env": {
+        "SLACK_MCP_XOXC_TOKEN": "xoxc-...",
+        "SLACK_MCP_XOXD_TOKEN": "xoxd-..."
+      }
+    }
+  }
+}
+```
+
+### Authentification
+
+Voir [docs/01-authentication-setup.md](docs/01-authentication-setup.md) pour les différentes méthodes d'authentification (browser tokens, OAuth, bot tokens).
+
 ## Security Restrictions (Yespark Fork)
 
 This fork implements strict security controls to prevent AI assistants from accessing private conversations:

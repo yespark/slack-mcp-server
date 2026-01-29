@@ -1,11 +1,10 @@
 {
-  "name": "slack-mcp-server-linux-amd64",
-  "version": "1.1.0",
-  "description": "Model Context Protocol (MCP) server for Slack Workspaces. This integration supports both Stdio and SSE transports, proxy settings and does not require any permissions or bots being created or approved by Workspace admins",
-  "os": [
-    "linux"
-  ],
-  "cpu": [
-    "x64"
-  ]
+  "name": "@yespark/slack-mcp-server-linux-amd64",
+  "version": "1.2.0",
+  "description": "Security-hardened MCP server for Slack (DMs blocked) - Linux x64 binary",
+  "os": ["linux"],
+  "cpu": ["x64"],
+  "publishConfig": {
+    "access": "public"
+  }
 }

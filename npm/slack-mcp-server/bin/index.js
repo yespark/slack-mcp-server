@@ -5,12 +5,12 @@ const path = require('path');
 const childProcess = require('child_process');
 
 const BINARY_MAP = {
-    darwin_x64:   { name: 'slack-mcp-server-darwin-amd64',    suffix: '' },
-    darwin_arm64: { name: 'slack-mcp-server-darwin-arm64',    suffix: '' },
-    linux_x64:    { name: 'slack-mcp-server-linux-amd64',     suffix: '' },
-    linux_arm64:  { name: 'slack-mcp-server-linux-arm64',     suffix: '' },
-    win32_x64:    { name: 'slack-mcp-server-windows-amd64',   suffix: '.exe' },
-    win32_arm64:  { name: 'slack-mcp-server-windows-arm64',   suffix: '.exe' },
+    darwin_x64:   { name: '@yespark/slack-mcp-server-darwin-amd64',  bin: 'slack-mcp-server-darwin-amd64',    suffix: '' },
+    darwin_arm64: { name: '@yespark/slack-mcp-server-darwin-arm64',  bin: 'slack-mcp-server-darwin-arm64',    suffix: '' },
+    linux_x64:    { name: '@yespark/slack-mcp-server-linux-amd64',   bin: 'slack-mcp-server-linux-amd64',     suffix: '' },
+    linux_arm64:  { name: '@yespark/slack-mcp-server-linux-arm64',   bin: 'slack-mcp-server-linux-arm64',     suffix: '' },
+    win32_x64:    { name: '@yespark/slack-mcp-server-windows-amd64', bin: 'slack-mcp-server-windows-amd64',   suffix: '.exe' },
+    win32_arm64:  { name: '@yespark/slack-mcp-server-windows-arm64', bin: 'slack-mcp-server-windows-arm64',   suffix: '.exe' },
 };
 
 function resolveBinaryPath() {
@@ -37,9 +37,9 @@ function resolveBinaryPath() {
     }
 
     if (process.env.SLACK_MCP_DXT) {
-        return require.resolve(path.join(__dirname, `${binary.name}${binary.suffix}`));
+        return require.resolve(path.join(__dirname, `${binary.bin}${binary.suffix}`));
     } else {
-        return require.resolve(`${binary.name}/bin/${binary.name}${binary.suffix}`);
+        return require.resolve(`${binary.name}/bin/${binary.bin}${binary.suffix}`);
     }
 }
 
