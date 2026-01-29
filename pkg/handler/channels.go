@@ -78,6 +78,10 @@ func (ch *ChannelsHandler) ChannelsResource(ctx context.Context, request mcp.Rea
 	ch.logger.Debug("Retrieved channels from provider", zap.Int("count", len(channels)))
 
 	for _, channel := range channels {
+		// Security: Filter out DMs and group DMs from the resource
+		if channel.IsIM || channel.IsMpIM {
+			continue
+		}
 		channelList = append(channelList, Channel{
 			ID:          channel.ID,
 			Name:        channel.Name,
@@ -127,6 +131,11 @@ func (ch *ChannelsHandler) ChannelsHandler(ctx context.Context, request mcp.Call
 	channelTypes := []string{}
 	for _, t := range strings.Split(types, ",") {
 		t = strings.TrimSpace(t)
+		// Security: Block access to DMs and group DMs
+		if t == "im" || t == "mpim" {
+			ch.logger.Warn("DM/MPIM channel type blocked for security", zap.String("type", t))
+			continue
+		}
 		if ch.validTypes[t] {
 			channelTypes = append(channelTypes, t)
 		} else if t != "" {
@@ -221,25 +230,19 @@ func filterChannelsByTypes(channels map[string]provider.Channel, types []string)
 
 	publicCount := 0
 	privateCount := 0
-	imCount := 0
-	mpimCount := 0
 
 	for _, ch := range channels {
-		if typeSet["public_channel"] && !ch.IsPrivate && !ch.IsIM && !ch.IsMpIM {
+		// Security: Never return DMs or group DMs regardless of requested types
+		if ch.IsIM || ch.IsMpIM {
+			continue
+		}
+		if typeSet["public_channel"] && !ch.IsPrivate {
 			result = append(result, ch)
 			publicCount++
 		}
-		if typeSet["private_channel"] && ch.IsPrivate && !ch.IsIM && !ch.IsMpIM {
+		if typeSet["private_channel"] && ch.IsPrivate {
 			result = append(result, ch)
 			privateCount++
-		}
-		if typeSet["im"] && ch.IsIM {
-			result = append(result, ch)
-			imCount++
-		}
-		if typeSet["mpim"] && ch.IsMpIM {
-			result = append(result, ch)
-			mpimCount++
 		}
 	}
 
@@ -248,8 +251,6 @@ func filterChannelsByTypes(channels map[string]provider.Channel, types []string)
 		zap.Int("total_output", len(result)),
 		zap.Int("public_channels", publicCount),
 		zap.Int("private_channels", privateCount),
-		zap.Int("ims", imCount),
-		zap.Int("mpims", mpimCount),
 	)
 
 	return result

@@ -476,6 +476,16 @@ func (ch *ConversationsHandler) parseParamsToolConversations(request mcp.CallToo
 		return nil, errors.New("channel_id must be a string")
 	}
 
+	// Security: Block access to DMs and group DMs
+	if strings.HasPrefix(channel, "@") {
+		ch.logger.Warn("DM access blocked", zap.String("channel", channel))
+		return nil, errors.New("direct messages (@username) are not accessible for security reasons")
+	}
+	if strings.HasPrefix(channel, "D") {
+		ch.logger.Warn("DM access blocked by ID", zap.String("channel", channel))
+		return nil, errors.New("direct messages (D...) are not accessible for security reasons")
+	}
+
 	limit := request.GetString("limit", "")
 	cursor := request.GetString("cursor", "")
 	activity := request.GetBool("include_activity_messages", false)
@@ -542,8 +552,8 @@ func (ch *ConversationsHandler) parseParamsToolAddMessage(request mcp.CallToolRe
 		return nil, errors.New(
 			"by default, the conversations_add_message tool is disabled to guard Slack workspaces against accidental spamming." +
 				"To enable it, set the SLACK_MCP_ADD_MESSAGE_TOOL environment variable to true, 1, or comma separated list of channels" +
-				"to limit where the MCP can post messages, e.g. 'SLACK_MCP_ADD_MESSAGE_TOOL=C1234567890,D0987654321', 'SLACK_MCP_ADD_MESSAGE_TOOL=!C1234567890'" +
-				"to enable all except one or 'SLACK_MCP_ADD_MESSAGE_TOOL=true' for all channels and DMs",
+				"to limit where the MCP can post messages, e.g. 'SLACK_MCP_ADD_MESSAGE_TOOL=C1234567890', 'SLACK_MCP_ADD_MESSAGE_TOOL=!C1234567890'" +
+				"to enable all except one or 'SLACK_MCP_ADD_MESSAGE_TOOL=true' for all channels",
 		)
 	}
 
@@ -551,6 +561,16 @@ func (ch *ConversationsHandler) parseParamsToolAddMessage(request mcp.CallToolRe
 	if channel == "" {
 		ch.logger.Error("channel_id missing in add-message params")
 		return nil, errors.New("channel_id must be a string")
+	}
+
+	// Security: Block access to DMs and group DMs
+	if strings.HasPrefix(channel, "@") {
+		ch.logger.Warn("DM access blocked for add_message", zap.String("channel", channel))
+		return nil, errors.New("direct messages (@username) are not accessible for security reasons")
+	}
+	if strings.HasPrefix(channel, "D") {
+		ch.logger.Warn("DM access blocked by ID for add_message", zap.String("channel", channel))
+		return nil, errors.New("direct messages (D...) are not accessible for security reasons")
 	}
 	if strings.HasPrefix(channel, "#") || strings.HasPrefix(channel, "@") {
 		channelsMaps := ch.apiProvider.ProvideChannelsMaps()
@@ -606,14 +626,8 @@ func (ch *ConversationsHandler) parseParamsToolSearch(req mcp.CallToolRequest) (
 			return nil, err
 		}
 		addFilter(filters, "in", f)
-	} else if im := req.GetString("filter_in_im_or_mpim", ""); im != "" {
-		f, err := ch.paramFormatUser(im)
-		if err != nil {
-			ch.logger.Error("Invalid IM/MPIM filter", zap.String("filter", im), zap.Error(err))
-			return nil, err
-		}
-		addFilter(filters, "in", f)
 	}
+	// Security: filter_in_im_or_mpim has been removed - DMs are not searchable
 	if with := req.GetString("filter_users_with", ""); with != "" {
 		f, err := ch.paramFormatUser(with)
 		if err != nil {
